@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://xbean.org/schemas/spring/1.0"
+        xmlns:sm="http://servicemix.apache.org/config/1.0"
+        xmlns:file="http://servicemix.apache.org/file/1.0"
+        xmlns:http="http://servicemix.apache.org/http/1.0"
+        xmlns:util="http://www.springframework.org/schema/util">
+    <bean id="jndi"
+            class="org.apache.xbean.spring.jndi.SpringInitialContextFactory"
+            factory-method="makeInitialContext"
+            singleton="true">
+        <property name="entries" ref="jndiEntries" />
+    </bean>
+    <util:map id="jndiEntries">
+        <bean id="defaultDS"
+            class="org.h2.jdbcx.JdbcDataSource"
+            singleton="true"/>
+    </util:map>
+    <sm:container id="jbi" depends-on="jndi">
+        <sm:activationSpecs>
+            <sm:activationSpec componentName="file">
+                <sm:component>
+                    <file:component>
+                        <file:endpoints>
+                            <file:poller service="file:file" endpoint="poller" targetService="http:http" targetEndpoint="provider"
+                                         file="src/main/resources"/>
+                        </file:endpoints>
+                    </file:component>
+                </sm:component>
+            </sm:activationSpec>
+            <sm:activationSpec componentName="http">
+                <sm:component>
+                    <http:component>
+                        <http:endpoints>
+                            <http:endpoint service="http:http" endpoint="provider" role="provider" locationURI="https://127.0.0.1:9099/test">
+                                <http:ssl>
+                                    <http:sslParameters managed="false" keyStore="foo.jks" keyStorePassword="SWuz2:#Cp7q,;ki&lt;[-Cl"
+                                                        keyAlias="bar" keyPassword="DF6yrKlnN2r%/0!rCSb%"/>
+                                </http:ssl>
+                            </http:endpoint>
+                            <http:endpoint service="http:http" endpoint="consumer" role="consumer" locationURI="https://127.0.0.1:9099/test">
+                                <http:ssl>
+                                    <http:sslParameters managed="false" keyStore="foo.jks" keyStorePassword="SWuz2:#Cp7q,;ki&lt;[-Cl"
+                                                        keyAlias="bar" keyPassword="DF6yrKlnN2r%/0!rCSb%"/>
+                                </http:ssl>
+                            </http:endpoint>
+                        </http:endpoints>
+                    </http:component>
+                </sm:component>
+            </sm:activationSpec>
+        </sm:activationSpecs>
+    </sm:container>
+</beans>
